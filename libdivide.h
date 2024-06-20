@@ -853,7 +853,7 @@ static LIBDIVIDE_INLINE struct libdivide_u32_t libdivide_internal_u32_gen(
     }
 
     struct libdivide_u32_t result;
-    uint32_t floor_log_2_d = 31 - libdivide_count_leading_zeros32(d);
+    uint32_t floor_log_2_d = 31 - (uint32_t)libdivide_count_leading_zeros32(d);
 
     // Power of 2
     if ((d & (d - 1)) == 0) {
@@ -1011,7 +1011,7 @@ static LIBDIVIDE_INLINE struct libdivide_u64_t libdivide_internal_u64_gen(
     }
 
     struct libdivide_u64_t result;
-    uint32_t floor_log_2_d = 63 - libdivide_count_leading_zeros64(d);
+    uint32_t floor_log_2_d = 63 - (uint32_t)libdivide_count_leading_zeros64(d);
 
     // Power of 2
     if ((d & (d - 1)) == 0) {
@@ -1192,7 +1192,7 @@ static LIBDIVIDE_INLINE struct libdivide_s16_t libdivide_internal_s16_gen(
     // and is a power of 2.
     uint16_t ud = (uint16_t)d;
     uint16_t absD = (d < 0) ? -ud : ud;
-    uint16_t floor_log_2_d = 15 - libdivide_count_leading_zeros16(absD);
+    uint16_t floor_log_2_d = 15 - (uint16_t)libdivide_count_leading_zeros16(absD);
     // check if exactly one bit is set,
     // don't care if absD is 0 since that's divide by zero
     if ((absD & (absD - 1)) == 0) {
@@ -1259,7 +1259,7 @@ int16_t libdivide_s16_do_raw(int16_t numer, int16_t magic, uint8_t more) {
     uint8_t shift = more & LIBDIVIDE_16_SHIFT_MASK;
 
     if (!magic) {
-        uint16_t sign = (int8_t)more >> 7;
+        uint16_t sign = (uint16_t)((int8_t)more >> 7);
         uint16_t mask = ((uint16_t)1 << shift) - 1;
         uint16_t uq = numer + ((numer >> 15) & mask);
         int16_t q = (int16_t)uq;
@@ -1367,7 +1367,7 @@ static LIBDIVIDE_INLINE struct libdivide_s32_t libdivide_internal_s32_gen(
     // and is a power of 2.
     uint32_t ud = (uint32_t)d;
     uint32_t absD = (d < 0) ? -ud : ud;
-    uint32_t floor_log_2_d = 31 - libdivide_count_leading_zeros32(absD);
+    uint32_t floor_log_2_d = 31 - (uint32_t)libdivide_count_leading_zeros32(absD);
     // check if exactly one bit is set,
     // don't care if absD is 0 since that's divide by zero
     if ((absD & (absD - 1)) == 0) {
@@ -1432,12 +1432,12 @@ int32_t libdivide_s32_do(int32_t numer, const struct libdivide_s32_t *denom) {
     uint8_t shift = more & LIBDIVIDE_32_SHIFT_MASK;
 
     if (!denom->magic) {
-        uint32_t sign = (int8_t)more >> 7;
+        uint32_t sign = (uint32_t)((int8_t)more >> 7);
         uint32_t mask = ((uint32_t)1 << shift) - 1;
-        uint32_t uq = numer + ((numer >> 31) & mask);
+        uint32_t uq = (uint32_t)numer + ((uint32_t)(numer >> 31) & mask);
         int32_t q = (int32_t)uq;
         q >>= shift;
-        q = (q ^ sign) - sign;
+        q = (q ^ (int32_t)sign) - (int32_t)sign;
         return q;
     } else {
         uint32_t uq = (uint32_t)libdivide_mullhi_s32(denom->magic, numer);
@@ -1446,7 +1446,7 @@ int32_t libdivide_s32_do(int32_t numer, const struct libdivide_s32_t *denom) {
             int32_t sign = (int8_t)more >> 7;
             // q += (more < 0 ? -numer : numer)
             // cast required to avoid UB
-            uq += ((uint32_t)numer ^ sign) - sign;
+            uq += ((uint32_t)numer ^ (uint32_t)sign) - (uint32_t)sign;
         }
         int32_t q = (int32_t)uq;
         q >>= shift;
@@ -1469,7 +1469,7 @@ int32_t libdivide_s32_branchfree_do(int32_t numer, const struct libdivide_s32_br
     // 2, or (2**shift) if it is not a power of 2
     uint32_t is_power_of_2 = (magic == 0);
     uint32_t q_sign = (uint32_t)(q >> 31);
-    q += q_sign & (((uint32_t)1 << shift) - is_power_of_2);
+    q += (int32_t)(q_sign & (((uint32_t)1 << shift) - is_power_of_2));
 
     // Now arithmetic right shift
     q >>= shift;
@@ -1501,7 +1501,7 @@ int32_t libdivide_s32_recover(const struct libdivide_s32_t *denom) {
 
         // Handle the power of 2 case (including branchfree)
         if (denom->magic == 0) {
-            int32_t result = (uint32_t)1 << shift;
+            int32_t result = (int32_t)((uint32_t)1 << shift);
             return negative_divisor ? -result : result;
         }
 
@@ -1536,7 +1536,7 @@ static LIBDIVIDE_INLINE struct libdivide_s64_t libdivide_internal_s64_gen(
     // and is a power of 2.
     uint64_t ud = (uint64_t)d;
     uint64_t absD = (d < 0) ? -ud : ud;
-    uint32_t floor_log_2_d = 63 - libdivide_count_leading_zeros64(absD);
+    uint32_t floor_log_2_d = 63 - (uint32_t)libdivide_count_leading_zeros64(absD);
     // check if exactly one bit is set,
     // don't care if absD is 0 since that's divide by zero
     if ((absD & (absD - 1)) == 0) {
@@ -1602,7 +1602,7 @@ int64_t libdivide_s64_do(int64_t numer, const struct libdivide_s64_t *denom) {
 
     if (!denom->magic) {  // shift path
         uint64_t mask = ((uint64_t)1 << shift) - 1;
-        uint64_t uq = numer + ((numer >> 63) & mask);
+        uint64_t uq = (uint64_t)numer + ((uint64_t)(numer >> 63) & mask);
         int64_t q = (int64_t)uq;
         q >>= shift;
         // must be arithmetic shift and then sign-extend
@@ -1616,7 +1616,7 @@ int64_t libdivide_s64_do(int64_t numer, const struct libdivide_s64_t *denom) {
             int64_t sign = (int8_t)more >> 7;
             // q += (more < 0 ? -numer : numer)
             // cast required to avoid UB
-            uq += ((uint64_t)numer ^ sign) - sign;
+            uq += ((uint64_t)numer ^ (uint64_t)sign) - (uint64_t)sign;
         }
         int64_t q = (int64_t)uq;
         q >>= shift;
@@ -1639,7 +1639,7 @@ int64_t libdivide_s64_branchfree_do(int64_t numer, const struct libdivide_s64_br
     // 2, or (2**shift) if it is not a power of 2.
     uint64_t is_power_of_2 = (magic == 0);
     uint64_t q_sign = (uint64_t)(q >> 63);
-    q += q_sign & (((uint64_t)1 << shift) - is_power_of_2);
+    q += (int64_t)(q_sign & (((uint64_t)1 << shift) - is_power_of_2));
 
     // Arithmetic right shift
     q >>= shift;
@@ -2307,7 +2307,7 @@ static LIBDIVIDE_INLINE __m256i libdivide_s64_signbits_vec256(__m256i v) {
 // Implementation of _mm256_srai_epi64 (from AVX512).
 static LIBDIVIDE_INLINE __m256i libdivide_s64_shift_right_vec256(__m256i v, int amt) {
     const int b = 64 - amt;
-    __m256i m = _mm256_set1_epi64x((uint64_t)1 << (b - 1));
+    __m256i m = _mm256_set1_epi64x((int64_t)((uint64_t)1 << (b - 1)));
     __m256i x = _mm256_srli_epi64(v, amt);
     __m256i result = _mm256_sub_epi64(_mm256_xor_si256(x, m), m);
     return result;
@@ -2371,7 +2371,7 @@ __m256i libdivide_u16_do_vec256(__m256i numers, const struct libdivide_u16_t *de
     if (!denom->magic) {
         return _mm256_srli_epi16(numers, more);
     } else {
-        __m256i q = _mm256_mulhi_epu16(numers, _mm256_set1_epi16(denom->magic));
+        __m256i q = _mm256_mulhi_epu16(numers, _mm256_set1_epi16((int16_t)(denom->magic)));
         if (more & LIBDIVIDE_ADD_MARKER) {
             __m256i t = _mm256_adds_epu16(_mm256_srli_epi16(_mm256_subs_epu16(numers, q), 1), q);
             return _mm256_srli_epi16(t, (more & LIBDIVIDE_16_SHIFT_MASK));
@@ -2383,7 +2383,7 @@ __m256i libdivide_u16_do_vec256(__m256i numers, const struct libdivide_u16_t *de
 
 __m256i libdivide_u16_branchfree_do_vec256(
     __m256i numers, const struct libdivide_u16_branchfree_t *denom) {
-    __m256i q = _mm256_mulhi_epu16(numers, _mm256_set1_epi16(denom->magic));
+    __m256i q = _mm256_mulhi_epu16(numers, _mm256_set1_epi16((int16_t)(denom->magic)));
     __m256i t = _mm256_adds_epu16(_mm256_srli_epi16(_mm256_subs_epu16(numers, q), 1), q);
     return _mm256_srli_epi16(t, denom->more);
 }
@@ -2395,13 +2395,13 @@ __m256i libdivide_u32_do_vec256(__m256i numers, const struct libdivide_u32_t *de
     if (!denom->magic) {
         return _mm256_srli_epi32(numers, more);
     } else {
-        __m256i q = libdivide_mullhi_u32_vec256(numers, _mm256_set1_epi32(denom->magic));
+        __m256i q = libdivide_mullhi_u32_vec256(numers, _mm256_set1_epi32((int32_t)(denom->magic)));
         if (more & LIBDIVIDE_ADD_MARKER) {
             // uint32_t t = ((numer - q) >> 1) + q;
             // return t >> denom->shift;
             uint32_t shift = more & LIBDIVIDE_32_SHIFT_MASK;
             __m256i t = _mm256_add_epi32(_mm256_srli_epi32(_mm256_sub_epi32(numers, q), 1), q);
-            return _mm256_srli_epi32(t, shift);
+            return _mm256_srli_epi32(t, (int32_t)shift);
         } else {
             return _mm256_srli_epi32(q, more);
         }
@@ -2410,7 +2410,7 @@ __m256i libdivide_u32_do_vec256(__m256i numers, const struct libdivide_u32_t *de
 
 __m256i libdivide_u32_branchfree_do_vec256(
     __m256i numers, const struct libdivide_u32_branchfree_t *denom) {
-    __m256i q = libdivide_mullhi_u32_vec256(numers, _mm256_set1_epi32(denom->magic));
+    __m256i q = libdivide_mullhi_u32_vec256(numers, _mm256_set1_epi32((int32_t)(denom->magic)));
     __m256i t = _mm256_add_epi32(_mm256_srli_epi32(_mm256_sub_epi32(numers, q), 1), q);
     return _mm256_srli_epi32(t, denom->more);
 }
@@ -2422,13 +2422,13 @@ __m256i libdivide_u64_do_vec256(__m256i numers, const struct libdivide_u64_t *de
     if (!denom->magic) {
         return _mm256_srli_epi64(numers, more);
     } else {
-        __m256i q = libdivide_mullhi_u64_vec256(numers, _mm256_set1_epi64x(denom->magic));
+        __m256i q = libdivide_mullhi_u64_vec256(numers, _mm256_set1_epi64x((int64_t)(denom->magic)));
         if (more & LIBDIVIDE_ADD_MARKER) {
             // uint32_t t = ((numer - q) >> 1) + q;
             // return t >> denom->shift;
             uint32_t shift = more & LIBDIVIDE_64_SHIFT_MASK;
             __m256i t = _mm256_add_epi64(_mm256_srli_epi64(_mm256_sub_epi64(numers, q), 1), q);
-            return _mm256_srli_epi64(t, shift);
+            return _mm256_srli_epi64(t, (int32_t)shift);
         } else {
             return _mm256_srli_epi64(q, more);
         }
@@ -2437,7 +2437,7 @@ __m256i libdivide_u64_do_vec256(__m256i numers, const struct libdivide_u64_t *de
 
 __m256i libdivide_u64_branchfree_do_vec256(
     __m256i numers, const struct libdivide_u64_branchfree_t *denom) {
-    __m256i q = libdivide_mullhi_u64_vec256(numers, _mm256_set1_epi64x(denom->magic));
+    __m256i q = libdivide_mullhi_u64_vec256(numers, _mm256_set1_epi64x((int64_t)(denom->magic)));
     __m256i t = _mm256_add_epi64(_mm256_srli_epi64(_mm256_sub_epi64(numers, q), 1), q);
     return _mm256_srli_epi64(t, denom->more);
 }
@@ -2449,7 +2449,7 @@ __m256i libdivide_s16_do_vec256(__m256i numers, const struct libdivide_s16_t *de
     if (!denom->magic) {
         uint16_t shift = more & LIBDIVIDE_16_SHIFT_MASK;
         uint16_t mask = ((uint16_t)1 << shift) - 1;
-        __m256i roundToZeroTweak = _mm256_set1_epi16(mask);
+        __m256i roundToZeroTweak = _mm256_set1_epi16((int16_t)mask);
         // q = numer + ((numer >> 15) & roundToZeroTweak);
         __m256i q = _mm256_add_epi16(
             numers, _mm256_and_si256(_mm256_srai_epi16(numers, 15), roundToZeroTweak));
@@ -2502,11 +2502,11 @@ __m256i libdivide_s32_do_vec256(__m256i numers, const struct libdivide_s32_t *de
     if (!denom->magic) {
         uint32_t shift = more & LIBDIVIDE_32_SHIFT_MASK;
         uint32_t mask = ((uint32_t)1 << shift) - 1;
-        __m256i roundToZeroTweak = _mm256_set1_epi32(mask);
+        __m256i roundToZeroTweak = _mm256_set1_epi32((int32_t)mask);
         // q = numer + ((numer >> 31) & roundToZeroTweak);
         __m256i q = _mm256_add_epi32(
             numers, _mm256_and_si256(_mm256_srai_epi32(numers, 31), roundToZeroTweak));
-        q = _mm256_srai_epi32(q, shift);
+        q = _mm256_srai_epi32(q, (int32_t)shift);
         __m256i sign = _mm256_set1_epi32((int8_t)more >> 7);
         // q = (q ^ sign) - sign;
         q = _mm256_sub_epi32(_mm256_xor_si256(q, sign), sign);
@@ -2541,7 +2541,7 @@ __m256i libdivide_s32_branchfree_do_vec256(
     // a power of 2, or (2**shift) if it is not a power of 2
     uint32_t is_power_of_2 = (magic == 0);
     __m256i q_sign = _mm256_srai_epi32(q, 31);  // q_sign = q >> 31
-    __m256i mask = _mm256_set1_epi32(((uint32_t)1 << shift) - is_power_of_2);
+    __m256i mask = _mm256_set1_epi32((int32_t)(((uint32_t)1 << shift) - is_power_of_2));
     q = _mm256_add_epi32(q, _mm256_and_si256(q_sign, mask));  // q = q + (q_sign & mask)
     q = _mm256_srai_epi32(q, shift);                          // q >>= shift
     q = _mm256_sub_epi32(_mm256_xor_si256(q, sign), sign);    // q = (q ^ sign) - sign
@@ -2556,11 +2556,11 @@ __m256i libdivide_s64_do_vec256(__m256i numers, const struct libdivide_s64_t *de
     if (magic == 0) {  // shift path
         uint32_t shift = more & LIBDIVIDE_64_SHIFT_MASK;
         uint64_t mask = ((uint64_t)1 << shift) - 1;
-        __m256i roundToZeroTweak = _mm256_set1_epi64x(mask);
+        __m256i roundToZeroTweak = _mm256_set1_epi64x((int64_t)mask);
         // q = numer + ((numer >> 63) & roundToZeroTweak);
         __m256i q = _mm256_add_epi64(
             numers, _mm256_and_si256(libdivide_s64_signbits_vec256(numers), roundToZeroTweak));
-        q = libdivide_s64_shift_right_vec256(q, shift);
+        q = libdivide_s64_shift_right_vec256(q, (int32_t)shift);
         __m256i sign = _mm256_set1_epi32((int8_t)more >> 7);
         // q = (q ^ sign) - sign;
         q = _mm256_sub_epi64(_mm256_xor_si256(q, sign), sign);
@@ -2597,7 +2597,7 @@ __m256i libdivide_s64_branchfree_do_vec256(
     // a power of 2, or (2**shift) if it is not a power of 2.
     uint32_t is_power_of_2 = (magic == 0);
     __m256i q_sign = libdivide_s64_signbits_vec256(q);  // q_sign = q >> 63
-    __m256i mask = _mm256_set1_epi64x(((uint64_t)1 << shift) - is_power_of_2);
+    __m256i mask = _mm256_set1_epi64x((int64_t)(((uint64_t)1 << shift) - is_power_of_2));
     q = _mm256_add_epi64(q, _mm256_and_si256(q_sign, mask));  // q = q + (q_sign & mask)
     q = libdivide_s64_shift_right_vec256(q, shift);           // q >>= shift
     q = _mm256_sub_epi64(_mm256_xor_si256(q, sign), sign);    // q = (q ^ sign) - sign
@@ -2646,7 +2646,7 @@ static LIBDIVIDE_INLINE __m128i libdivide_s64_signbits_vec128(__m128i v) {
 // Implementation of _mm_srai_epi64 (from AVX512).
 static LIBDIVIDE_INLINE __m128i libdivide_s64_shift_right_vec128(__m128i v, int amt) {
     const int b = 64 - amt;
-    __m128i m = _mm_set1_epi64x((uint64_t)1 << (b - 1));
+    __m128i m = _mm_set1_epi64x((int64_t)((uint64_t)1 << (b - 1)));
     __m128i x = _mm_srli_epi64(v, amt);
     __m128i result = _mm_sub_epi64(_mm_xor_si128(x, m), m);
     return result;
@@ -2724,7 +2724,7 @@ __m128i libdivide_u16_do_vec128(__m128i numers, const struct libdivide_u16_t *de
     if (!denom->magic) {
         return _mm_srli_epi16(numers, more);
     } else {
-        __m128i q = _mm_mulhi_epu16(numers, _mm_set1_epi16(denom->magic));
+        __m128i q = _mm_mulhi_epu16(numers, _mm_set1_epi16((int16_t)(denom->magic)));
         if (more & LIBDIVIDE_ADD_MARKER) {
             __m128i t = _mm_adds_epu16(_mm_srli_epi16(_mm_subs_epu16(numers, q), 1), q);
             return _mm_srli_epi16(t, (more & LIBDIVIDE_16_SHIFT_MASK));
@@ -2736,7 +2736,7 @@ __m128i libdivide_u16_do_vec128(__m128i numers, const struct libdivide_u16_t *de
 
 __m128i libdivide_u16_branchfree_do_vec128(
     __m128i numers, const struct libdivide_u16_branchfree_t *denom) {
-    __m128i q = _mm_mulhi_epu16(numers, _mm_set1_epi16(denom->magic));
+    __m128i q = _mm_mulhi_epu16(numers, _mm_set1_epi16((int16_t)(denom->magic)));
     __m128i t = _mm_adds_epu16(_mm_srli_epi16(_mm_subs_epu16(numers, q), 1), q);
     return _mm_srli_epi16(t, denom->more);
 }
@@ -2748,13 +2748,13 @@ __m128i libdivide_u32_do_vec128(__m128i numers, const struct libdivide_u32_t *de
     if (!denom->magic) {
         return _mm_srli_epi32(numers, more);
     } else {
-        __m128i q = libdivide_mullhi_u32_vec128(numers, _mm_set1_epi32(denom->magic));
+        __m128i q = libdivide_mullhi_u32_vec128(numers, _mm_set1_epi32((int32_t)(denom->magic)));
         if (more & LIBDIVIDE_ADD_MARKER) {
             // uint32_t t = ((numer - q) >> 1) + q;
             // return t >> denom->shift;
             uint32_t shift = more & LIBDIVIDE_32_SHIFT_MASK;
             __m128i t = _mm_add_epi32(_mm_srli_epi32(_mm_sub_epi32(numers, q), 1), q);
-            return _mm_srli_epi32(t, shift);
+            return _mm_srli_epi32(t, (int32_t)shift);
         } else {
             return _mm_srli_epi32(q, more);
         }
@@ -2763,7 +2763,7 @@ __m128i libdivide_u32_do_vec128(__m128i numers, const struct libdivide_u32_t *de
 
 __m128i libdivide_u32_branchfree_do_vec128(
     __m128i numers, const struct libdivide_u32_branchfree_t *denom) {
-    __m128i q = libdivide_mullhi_u32_vec128(numers, _mm_set1_epi32(denom->magic));
+    __m128i q = libdivide_mullhi_u32_vec128(numers, _mm_set1_epi32((int32_t)(denom->magic)));
     __m128i t = _mm_add_epi32(_mm_srli_epi32(_mm_sub_epi32(numers, q), 1), q);
     return _mm_srli_epi32(t, denom->more);
 }
@@ -2775,13 +2775,13 @@ __m128i libdivide_u64_do_vec128(__m128i numers, const struct libdivide_u64_t *de
     if (!denom->magic) {
         return _mm_srli_epi64(numers, more);
     } else {
-        __m128i q = libdivide_mullhi_u64_vec128(numers, _mm_set1_epi64x(denom->magic));
+        __m128i q = libdivide_mullhi_u64_vec128(numers, _mm_set1_epi64x((int64_t)(denom->magic)));
         if (more & LIBDIVIDE_ADD_MARKER) {
             // uint32_t t = ((numer - q) >> 1) + q;
             // return t >> denom->shift;
             uint32_t shift = more & LIBDIVIDE_64_SHIFT_MASK;
             __m128i t = _mm_add_epi64(_mm_srli_epi64(_mm_sub_epi64(numers, q), 1), q);
-            return _mm_srli_epi64(t, shift);
+            return _mm_srli_epi64(t, (int32_t)shift);
         } else {
             return _mm_srli_epi64(q, more);
         }
@@ -2790,7 +2790,7 @@ __m128i libdivide_u64_do_vec128(__m128i numers, const struct libdivide_u64_t *de
 
 __m128i libdivide_u64_branchfree_do_vec128(
     __m128i numers, const struct libdivide_u64_branchfree_t *denom) {
-    __m128i q = libdivide_mullhi_u64_vec128(numers, _mm_set1_epi64x(denom->magic));
+    __m128i q = libdivide_mullhi_u64_vec128(numers, _mm_set1_epi64x((int64_t)(denom->magic)));
     __m128i t = _mm_add_epi64(_mm_srli_epi64(_mm_sub_epi64(numers, q), 1), q);
     return _mm_srli_epi64(t, denom->more);
 }
@@ -2802,7 +2802,7 @@ __m128i libdivide_s16_do_vec128(__m128i numers, const struct libdivide_s16_t *de
     if (!denom->magic) {
         uint16_t shift = more & LIBDIVIDE_16_SHIFT_MASK;
         uint16_t mask = ((uint16_t)1 << shift) - 1;
-        __m128i roundToZeroTweak = _mm_set1_epi16(mask);
+        __m128i roundToZeroTweak = _mm_set1_epi16((int16_t)mask);
         // q = numer + ((numer >> 15) & roundToZeroTweak);
         __m128i q =
             _mm_add_epi16(numers, _mm_and_si128(_mm_srai_epi16(numers, 15), roundToZeroTweak));
@@ -2855,11 +2855,11 @@ __m128i libdivide_s32_do_vec128(__m128i numers, const struct libdivide_s32_t *de
     if (!denom->magic) {
         uint32_t shift = more & LIBDIVIDE_32_SHIFT_MASK;
         uint32_t mask = ((uint32_t)1 << shift) - 1;
-        __m128i roundToZeroTweak = _mm_set1_epi32(mask);
+        __m128i roundToZeroTweak = _mm_set1_epi32((int32_t)mask);
         // q = numer + ((numer >> 31) & roundToZeroTweak);
         __m128i q =
             _mm_add_epi32(numers, _mm_and_si128(_mm_srai_epi32(numers, 31), roundToZeroTweak));
-        q = _mm_srai_epi32(q, shift);
+        q = _mm_srai_epi32(q, (int32_t)shift);
         __m128i sign = _mm_set1_epi32((int8_t)more >> 7);
         // q = (q ^ sign) - sign;
         q = _mm_sub_epi32(_mm_xor_si128(q, sign), sign);
@@ -2894,7 +2894,7 @@ __m128i libdivide_s32_branchfree_do_vec128(
     // a power of 2, or (2**shift) if it is not a power of 2
     uint32_t is_power_of_2 = (magic == 0);
     __m128i q_sign = _mm_srai_epi32(q, 31);  // q_sign = q >> 31
-    __m128i mask = _mm_set1_epi32(((uint32_t)1 << shift) - is_power_of_2);
+    __m128i mask = _mm_set1_epi32((int32_t)(((uint32_t)1 << shift) - is_power_of_2));
     q = _mm_add_epi32(q, _mm_and_si128(q_sign, mask));  // q = q + (q_sign & mask)
     q = _mm_srai_epi32(q, shift);                       // q >>= shift
     q = _mm_sub_epi32(_mm_xor_si128(q, sign), sign);    // q = (q ^ sign) - sign
@@ -2909,11 +2909,11 @@ __m128i libdivide_s64_do_vec128(__m128i numers, const struct libdivide_s64_t *de
     if (magic == 0) {  // shift path
         uint32_t shift = more & LIBDIVIDE_64_SHIFT_MASK;
         uint64_t mask = ((uint64_t)1 << shift) - 1;
-        __m128i roundToZeroTweak = _mm_set1_epi64x(mask);
+        __m128i roundToZeroTweak = _mm_set1_epi64x((int64_t)mask);
         // q = numer + ((numer >> 63) & roundToZeroTweak);
         __m128i q = _mm_add_epi64(
             numers, _mm_and_si128(libdivide_s64_signbits_vec128(numers), roundToZeroTweak));
-        q = libdivide_s64_shift_right_vec128(q, shift);
+        q = libdivide_s64_shift_right_vec128(q, (int32_t)shift);
         __m128i sign = _mm_set1_epi32((int8_t)more >> 7);
         // q = (q ^ sign) - sign;
         q = _mm_sub_epi64(_mm_xor_si128(q, sign), sign);
@@ -2950,7 +2950,7 @@ __m128i libdivide_s64_branchfree_do_vec128(
     // a power of 2, or (2**shift) if it is not a power of 2.
     uint32_t is_power_of_2 = (magic == 0);
     __m128i q_sign = libdivide_s64_signbits_vec128(q);  // q_sign = q >> 63
-    __m128i mask = _mm_set1_epi64x(((uint64_t)1 << shift) - is_power_of_2);
+    __m128i mask = _mm_set1_epi64x((int64_t)(((uint64_t)1 << shift) - is_power_of_2));
     q = _mm_add_epi64(q, _mm_and_si128(q_sign, mask));  // q = q + (q_sign & mask)
     q = libdivide_s64_shift_right_vec128(q, shift);     // q >>= shift
     q = _mm_sub_epi64(_mm_xor_si128(q, sign), sign);    // q = (q ^ sign) - sign
